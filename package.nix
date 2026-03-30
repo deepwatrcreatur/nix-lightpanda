@@ -5,16 +5,16 @@
 }:
 
 let
-  version = "nightly";
+  version = "0.2.7";
 
   sources = {
     x86_64-linux = {
       url = "https://github.com/lightpanda-io/browser/releases/download/${version}/lightpanda-x86_64-linux";
-      hash = "sha256-okqJsAD174LcBoKV3p0/UaVx+dB4puov1pUYjk2aJys=";
+      hash = "sha256-cGrMzVDnChi4IG/Js8Fvy4V0uYS21prgWppCYv7KvxI=";
     };
     aarch64-linux = {
       url = "https://github.com/lightpanda-io/browser/releases/download/${version}/lightpanda-aarch64-linux";
-      hash = "sha256-pBN5a4j0Ru6rBSO1FWKcEFRlU5PflwPZOIbBimUYwvc=";
+      hash = "sha256-C0LCBkVxnjzfYCKUrIH7zcEMi7NhBL4IbPMoTax4gAs=";
     };
   };
 
