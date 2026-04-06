@@ -1,0 +1,70 @@
+name: Update Package
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 6 * * 1"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@main
+
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Update nightly hashes
+        # lightpanda uses version = "nightly" with a per-platform sources
+        # attrset — nix-update cannot parse this pattern. Instead, prefetch
+        # each platform URL and update the hashes in package.nix directly.
+        run: |
+          set -euo pipefail
+
+          BASE="https://github.com/lightpanda-io/browser/releases/download/nightly"
+
+          x86_hash=$(nix store prefetch-file --json "${BASE}/lightpanda-x86_64-linux" | jq -r '.hash')
+          aarch64_hash=$(nix store prefetch-file --json "${BASE}/lightpanda-aarch64-linux" | jq -r '.hash')
+
+          python3 - "$x86_hash" "$aarch64_hash" <<'EOF'
+          import sys, re
+
+          x86_hash, aarch64_hash = sys.argv[1], sys.argv[2]
+
+          with open('package.nix') as f:
+              content = f.read()
+
+          def replace_hash(content, platform, new_hash):
+              pattern = (
+                  r'("' + re.escape(platform) + r'"\s*=\s*\{[^}]*?hash\s*=\s*")[^"]*(")'
+              )
+              return re.sub(pattern, r'\g<1>' + new_hash + r'\g<2>', content, flags=re.DOTALL)
+
+          content = replace_hash(content, 'x86_64-linux', x86_hash)
+          content = replace_hash(content, 'aarch64-linux', aarch64_hash)
+
+          with open('package.nix', 'w') as f:
+              f.write(content)
+
+          print(f"x86_64-linux  → {x86_hash}")
+          print(f"aarch64-linux → {aarch64_hash}")
+          EOF
+
+      - name: Build package
+        run: nix build .#lightpanda
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: automation/update-package
+          commit-message: "chore: update lightpanda nightly hashes"
+          title: "chore: update lightpanda nightly hashes"
+          body: |
+            Automated nightly hash refresh. The `nightly` release tag is a
+            floating pointer — only the hashes change, not the version string.
