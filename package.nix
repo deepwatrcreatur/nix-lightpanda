@@ -5,12 +5,12 @@
 }:
 
 let
-  version = "0.2.7";
+  version = "0.2.8";
 
   sources = {
     x86_64-linux = {
       url = "https://github.com/lightpanda-io/browser/releases/download/${version}/lightpanda-x86_64-linux";
-      hash = "sha256-cGrMzVDnChi4IG/Js8Fvy4V0uYS21prgWppCYv7KvxI=";
+      hash = "sha256-jjpeBM9QhpmZCnigqGhuozmJEs2Ykf2pBRNCm4kjAwA=";
     };
     aarch64-linux = {
       url = "https://github.com/lightpanda-io/browser/releases/download/${version}/lightpanda-aarch64-linux";
